@@ -1,1 +1,95 @@
 Щуцкий Дмитрий
+
+
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <algorithm>
+
+using namespace std;
+
+struct Node {
+    string* word;
+    int count;
+    Node* left;
+    Node* right;
+
+    Node(string* w) : word(w), count(1), left(nullptr), right(nullptr) {}
+};
+
+// Функция сравнения строк (для бинарного поиска)
+bool compareStrings(const string* a, const string* b) {
+    return *a < *b;
+}
+
+// Вставка слова в бинарное дерево
+Node* insertWord(Node* root, string* word) {
+    if (root == nullptr) {
+        return new Node(word);
+    }
+
+    int cmp = compareStrings(word, root->word);
+    if (cmp < 0) {
+        root->left = insertWord(root->left, word);
+    } else if (cmp > 0) {
+        root->right = insertWord(root->right, word);
+    } else {
+        root->count++; // Слово уже есть, увеличиваем счетчик
+    }
+    return root;
+}
+
+// Обход дерева для вывода результатов
+void printFrequencies(Node* root) {
+    if (root != nullptr) {
+        printFrequencies(root->left);
+        cout << *root->word << ": " << root->count << endl;
+        printFrequencies(root->right);
+    }
+}
+
+//Освобождение памяти, занимаемой деревом
+void deleteTree(Node* root) {
+    if (root != nullptr) {
+        deleteTree(root->left);
+        deleteTree(root->right);
+        delete root->word; //Освобождаем память, занятую словом
+        delete root;
+    }
+}
+
+
+int main() {
+    ifstream inputFile("input.txt"); //Замените "input.txt" на имя вашего файла
+    if (!inputFile.is_open()) {
+        cerr << "Ошибка открытия файла!" << endl;
+        return 1;
+    }
+
+    Node* root = nullptr;
+    string line;
+
+    while (getline(inputFile, line)) {
+        stringstream ss(line);
+        string word;
+        while (ss >> word) {
+            //Удаление знаков препинания (можно расширить)
+            word.erase(remove_if(word.begin(), word.end(), ::ispunct), word.end());
+            //Приведение к нижнему регистру
+            transform(word.begin(), word.end(), word.begin(), ::tolower);
+
+            string* wordPtr = new string(word); //Создаем динамическую строку
+            root = insertWord(root, wordPtr);
+        }
+    }
+
+    inputFile.close();
+
+    cout << "Частота встречаемости слов:\n";
+    printFrequencies(root);
+
+    deleteTree(root); //Освобождаем память
+
+    return 0;
+}
