@@ -1,6 +1,7 @@
 Щуцкий Дмитрий
 
 
+// Нужно проверить работоспособность программы
 #include <iostream>
 #include <string>
 #include <fstream>
